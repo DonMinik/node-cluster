@@ -1,9 +1,6 @@
 const cluster = require('cluster');
 const numCPUs = require('os').cpus().length;
 
-function doSomething() {
-
-}
 
 if (cluster.isMaster) {
     console.log(`Master ${process.pid} is running`);
@@ -22,6 +19,8 @@ if (cluster.isMaster) {
         if (id === '6')
             cluster.workers[id].send('kill');
     }
+
+    cluster.disconnect();
 
 } else  if (cluster.isWorker) {
     console.log(`Worker ${process.pid} started`);
