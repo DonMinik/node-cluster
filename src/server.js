@@ -13,29 +13,44 @@ if (cluster.isMaster) {
         console.log(`worker ${worker.process.pid} died`);
     });
 
+    function giveTasksToWorkers() {
+        return new Promise(function(resolve, reject) {
+            for (const id in cluster.workers) {
 
+                let data = {msg: ''};
+                if (id <= 4) {
+                    cluster.workers[id].on('message', (msg) =>{
+                        console.log(msg);
+                        sendCount--;
+                        if (sendCount <= 0) {
+                            console.log('all done');
+                            resolve('promise resolved');
+                            cluster.disconnect();
+                        }
 
-    for (const id in cluster.workers) {
-
-        let data = {msg: ''};
-        if (id <= 4) {
-            cluster.workers[id].on('message', (msg) =>{
-                console.log(msg);
-                sendCount--;
-                if (sendCount <= 0) {
-                    console.log('all done');
-                    cluster.disconnect();
+                    });
+                    data.msg = 'doSomething';
+                    sendCount++;
                 }
-            });
-            data.msg = 'doSomething';
-            sendCount++;
-        }
 
-        if (id === '6')
-            data.msg = 'kill';
-        cluster.workers[id].send(data);
+                if (id === '6')
+                    data.msg = 'kill';
+                cluster.workers[id].send(data);
 
+            }
+        });
     }
+
+    async function handleWorkers() {
+        await giveTasksToWorkers().then((msg) => {
+            console.log(msg);
+            cluster.disconnect();
+        });
+    }
+
+    handleWorkers();
+    console.log('finished'); //be carefull instructions on to level are always synchronous.
+    // await cannot be used here. therefore execution is "finished" before promise is resolved in async function.
 
 } else  if (cluster.isWorker) {
     console.log(`Worker ${process.pid} started`);
