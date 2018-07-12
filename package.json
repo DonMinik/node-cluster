@@ -1,7 +1,5 @@
 {
   "name": "node-cluster",
   "version": "0.0.1",
-  "dependencies": {
-    
-  }
+  "dependencies": {}
 }
